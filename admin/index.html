@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The SyncPoint - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="loadingAnimation" class="loading-animation" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2>Welcome to SyncPoint</h2>
+            <p>Loading your dashboard...</p>
+        </div>
+    </div>
+
+    <div id="loginScreen" class="login-container" style="display: none;">
+        <h1>SyncPoint Login</h1>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <p class="login-message" id="loginMessage"></p>
+    </div>
+
+    <div id="appContainer" class="container">
+        <div class="header">
+            <h1>The SyncPoint</h1>
+            <p>Your Ultimate School Club Management Platform</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="sidebar">
+                <div class="nav-item active" onclick="showSection('dashboard')">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </div>
+                <div class="nav-item" onclick="showSection('clubs')">
+                    <i class="fas fa-university"></i> Clubs
+                </div>
+                <div class="nav-item" onclick="showSection('members')">
+                    <i class="fas fa-users"></i> Members
+                </div>
+                <div class="nav-item" onclick="showSection('events')">
+                    <i class="fas fa-calendar-alt"></i> Events
+                </div>
+                <div class="nav-item" onclick="showSection('activities')">
+                    <i class="fas fa-bolt"></i> Activities
+                </div>
+                <div class="nav-item" onclick="showSection('finances')">
+                    <i class="fas fa-coins"></i> Finances
+                </div>
+                <div class="nav-item" onclick="showSection('reports')">
+                    <i class="fas fa-chart-bar"></i> Reports
+                </div>
+                <div class="nav-item" onclick="logout()" style="margin-top: 20px;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+
+
+            <div class="main-content">
+                <div id="dashboard" class="section active">
+                    <h2>Dashboard Overview</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3 id="totalClubs">0</h3>
+                            <p>Active Clubs</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="totalMembers">0</h3>
+                            <p>Total Members</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="upcomingEvents">0</h3>
+                            <p>Upcoming Events</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="totalBudget">$0</h3>
+                            <p>Total Budget</p>
+                        </div>
+                    </div>
+
+                    <h3>Recent Activities</h3>
+                    <div id="recentActivities">
+                    </div>
+                </div>
+
+                <div id="clubs" class="section">
+                    <h2>Club Management</h2>
+                    <button class="btn" onclick="openModal('clubModal')">➕ Add New Club</button>
+
+                    <input type="text" class="search-box" placeholder="Search clubs..."
+                        onkeyup="searchClubs(this.value)">
+
+                    <div id="clubsList">
+                    </div>
+
+                    <div class="pagination" id="clubsPagination">
+                        <button id="clubsPrevBtn" disabled onclick="changePage('clubs', -1)">Previous</button>
+                        <span class="page-info">Page&nbsp;<span id="clubsCurrentPage">1</span>&nbsp;of&nbsp; <span
+                                id="clubsTotalPages">1</span></span>
+                        <button id="clubsNextBtn" disabled onclick="changePage('clubs', 1)">Next</button>
+                        <select class="page-size" id="clubsPageSize" onchange="changePageSize('clubs')">
+                            <option value="5">5 per page</option>
+                            <option value="10" selected>10 per page</option>
+                            <option value="20">20 per page</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="members" class="section">
+                    <h2>Member Management</h2>
+                    <button class="btn" onclick="openModal('memberModal')">➕ Add New Member</button>
+
+                    <input type="text" class="search-box" placeholder="Search members..."
+                        onkeyup="searchMembers(this.value)">
+
+                    <table class="table" id="membersTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Club</th>
+                                <th>Role</th>
+                                <th>Join Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membersTableBody">
+                        </tbody>
+                    </table>
+
+                    <div class="pagination" id="membersPagination">
+                        <button id="membersPrevBtn" disabled onclick="changePage('members', -1)">Previous</button>
+                        <span class="page-info">Page&nbsp;<span id="membersCurrentPage">1</span>&nbsp;of&nbsp;<span
+                                id="membersTotalPages">1</span></span>
+                        <button id="membersNextBtn" disabled onclick="changePage('members', 1)">Next</button>
+                        <select class="page-size" id="membersPageSize" onchange="changePageSize('members')">
+                            <option value="5">5 per page</option>
+                            <option value="10" selected>10 per page</option>
+                            <option value="20">20 per page</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="events" class="section">
+                    <h2>Event Management</h2>
+                    <button class="btn" onclick="openModal('eventModal')">➕ Create New Event</button>
+
+                    <div id="eventsList">
+                    </div>
+
+                    <div class="pagination" id="eventsPagination">
+                        <button id="eventsPrevBtn" disabled onclick="changePage('events', -1)">Previous</button>
+                        <span class="page-info">Page&nbsp;<span id="eventsCurrentPage">1</span>&nbsp;of&nbsp;<span
+                                id="eventsTotalPages">1</span></span>
+                        <button id="eventsNextBtn" disabled onclick="changePage('events', 1)">Next</button>
+                        <select class="page-size" id="eventsPageSize" onchange="changePageSize('events')">
+                            <option value="5">5 per page</option>
+                            <option value="10" selected>10 per page</option>
+                            <option value="20">20 per page</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="activities" class="section">
+                    <h2>Activity Log</h2>
+                    <div id="activitiesList">
+                    </div>
+
+                    <div class="pagination" id="activitiesPagination">
+                        <button id="activitiesPrevBtn" disabled onclick="changePage('activities', -1)">Previous</button>
+                        <span class="page-info">Page&nbsp;<span id="activitiesCurrentPage">1</span>&nbsp;of&nbsp;<span
+                                id="activitiesTotalPages">1</span></span>
+                        <button id="activitiesNextBtn" disabled onclick="changePage('activities', 1)">Next</button>
+                        <select class="page-size" id="activitiesPageSize" onchange="changePageSize('activities')">
+                            <option value="5">5 per page</option>
+                            <option value="10" selected>10 per page</option>
+                            <option value="20">20 per page</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="finances" class="section">
+                    <h2>Financial Management</h2>
+                    <button class="btn" onclick="openModal('budgetModal')">💰 Add Budget Entry</button>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3 id="totalIncome">$0</h3>
+                            <p>Total Income</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="totalExpenses">$0</h3>
+                            <p>Total Expenses</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="netBalance">$0</h3>
+                            <p>Net Balance</p>
+                        </div>
+                    </div>
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Club</th>
+                                <th>Description</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="budgetTableBody">
+                        </tbody>
+                    </table>
+
+                    <div class="pagination" id="financesPagination">
+                        <button id="financesPrevBtn" disabled onclick="changePage('finances', -1)">Previous</button>
+                        <span class="page-info">Page&nbsp;<span id="financesCurrentPage">1</span>&nbsp;of&nbsp;<span
+                                id="financesTotalPages">1</span></span>
+                        <button id="financesNextBtn" disabled onclick="changePage('finances', 1)">Next</button>
+                        <select class="page-size" id="financesPageSize" onchange="changePageSize('finances')">
+                            <option value="5">5 per page</option>
+                            <option value="10" selected>10 per page</option>
+                            <option value="20">20 per page</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="reports" class="section">
+                    <h2>Reports & Analytics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3 id="retentionRate">0%</h3>
+                            <p>Member Retention</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="attendanceRate">0%</h3>
+                            <p>Event Attendance</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="utilizationRate">0%</h3>
+                            <p>Budget Utilization</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="satisfactionScore">0/5</h3>
+                            <p>Satisfaction Score</p>
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="generateReport()">📊 Generate Monthly Report</button>
+                    <button class="btn btn-secondary" onclick="exportAnalytics()">📈 Export Analytics</button>
+                    <button class="btn btn-secondary" onclick="generateMemberReport()">📋 Member Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="clubModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('clubModal')">&times;</span>
+            <h2>Add New Club</h2>
+            <form onsubmit="addClub(event)">
+                <div class="form-group">
+                    <label for="clubName">Club Name</label>
+                    <input type="text" id="clubName" required>
+                </div>
+                <div class="form-group">
+                    <label for="clubDescription">Description</label>
+                    <textarea id="clubDescription" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="clubCategory">Category</label>
+                    <select id="clubCategory">
+                        <option value="Academic">Academic</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Arts">Arts</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Social">Social</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="clubBudget">Initial Budget</label>
+                    <input type="number" id="clubBudget" min="0" step="0.01">
+                </div>
+                <button type="submit" class="btn">Add Club</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('clubModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="memberModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('memberModal')">&times;</span>
+            <h2>Add New Member</h2>
+            <form onsubmit="addMember(event)">
+                <div class="form-group">
+                    <label for="memberName">Full Name</label>
+                    <input type="text" id="memberName" required>
+                </div>
+                <div class="form-group">
+                    <label for="memberEmail">Email</label>
+                    <input type="email" id="memberEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="memberClub">Club</label>
+                    <select id="memberClub" required>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="memberRole">Role</label>
+                    <select id="memberRole">
+                        <option value="Member">Member</option>
+                        <option value="Officer">Officer</option>
+                        <option value="President">President</option>
+                        <option value="Vice President">Vice President</option>
+                        <option value="Secretary">Secretary</option>
+                        <option value="Treasurer">Treasurer</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Add Member</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('memberModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('eventModal')">&times;</span>
+            <h2>Create New Event</h2>
+            <form onsubmit="addEvent(event)">
+                <div class="form-group">
+                    <label for="eventName">Event Name</label>
+                    <input type="text" id="eventName" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventDescription">Description</label>
+                    <textarea id="eventDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="eventDate">Date</label>
+                    <input type="date" id="eventDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventTime">Time</label>
+                    <input type="time" id="eventTime">
+                </div>
+                <div class="form-group">
+                    <label for="eventLocation">Location</label>
+                    <input type="text" id="eventLocation">
+                </div>
+                <div class="form-group">
+                    <label for="eventClub">Organizing Club</label>
+                    <select id="eventClub" required>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Create Event</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('eventModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="budgetModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('budgetModal')">&times;</span>
+            <h2>Add Budget Entry</h2>
+            <form onsubmit="addBudgetEntry(event)">
+                <div class="form-group">
+                    <label for="budgetClub">Club</label>
+                    <select id="budgetClub" required>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="budgetDescription">Description</label>
+                    <input type="text" id="budgetDescription" required>
+                </div>
+                <div class="form-group">
+                    <label for="budgetType">Type</label>
+                    <select id="budgetType">
+                        <option value="Income">Income</option>
+                        <option value="Expense">Expense</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="budgetAmount">Amount</label>
+                    <input type="number" id="budgetAmount" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="budgetDate">Date</label>
+                    <input type="date" id="budgetDate" required>
+                </div>
+                <button type="submit" class="btn">Add Entry</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('budgetModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="editClubModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editClubModal')">&times;</span>
+            <h2>Edit Club</h2>
+            <form onsubmit="updateClub(event)">
+                <input type="hidden" id="editClubId">
+                <div class="form-group">
+                    <label for="editClubName">Club Name</label>
+                    <input type="text" id="editClubName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editClubDescription">Description</label>
+                    <textarea id="editClubDescription" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editClubCategory">Category</label>
+                    <select id="editClubCategory">
+                        <option value="Academic">Academic</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Arts">Arts</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Social">Social</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editClubBudget">Budget</label>
+                    <input type="number" id="editClubBudget" min="0" step="0.01">
+                </div>
+                <button type="submit" class="btn">Update Club</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editClubModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="editMemberModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editMemberModal')">&times;</span>
+            <h2>Edit Member</h2>
+            <form onsubmit="updateMember(event)">
+                <input type="hidden" id="editMemberId">
+                <div class="form-group">
+                    <label for="editMemberName">Full Name</label>
+                    <input type="text" id="editMemberName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editMemberEmail">Email</label>
+                    <input type="email" id="editMemberEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="editMemberClub">Club</label>
+                    <select id="editMemberClub" required>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editMemberRole">Role</label>
+                    <select id="editMemberRole">
+                        <option value="Member">Member</option>
+                        <option value="Officer">Officer</option>
+                        <option value="President">President</option>
+                        <option value="Vice President">Vice President</option>
+                        <option value="Secretary">Secretary</option>
+                        <option value="Treasurer">Treasurer</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Update Member</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editMemberModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="editEventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editEventModal')">&times;</span>
+            <h2>Edit Event</h2>
+            <form onsubmit="updateEvent(event)">
+                <input type="hidden" id="editEventId">
+                <div class="form-group">
+                    <label for="editEventName">Event Name</label>
+                    <input type="text" id="editEventName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEventDescription">Description</label>
+                    <textarea id="editEventDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editEventDate">Date</label>
+                    <input type="date" id="editEventDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEventTime">Time</label>
+                    <input type="time" id="editEventTime">
+                </div>
+                <div class="form-group">
+                    <label for="editEventLocation">Location</label>
+                    <input type="text" id="editEventLocation">
+                </div>
+                <div class="form-group">
+                    <label for="editEventClub">Organizing Club</label>
+                    <select id="editEventClub" required>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Update Event</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editEventModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
