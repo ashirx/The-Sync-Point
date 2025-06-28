@@ -480,51 +480,34 @@
  .header {
      background: linear-gradient(135deg, #4361ee, #3a0ca3);
      color: white;
-     border-radius: 16px;
-     padding: 70px 30px;
+     border-radius: 0 0 16px 16px;
+     padding: 30px 20px;
      margin-bottom: 30px;
      text-align: center;
-     box-shadow: 0 10px 30px rgba(67, 97, 238, 0.2);
      position: relative;
      overflow: hidden;
  }
 
- .header::before {
-     content: '';
-     position: absolute;
-     top: 0;
-     left: 0;
-     right: 0;
-     bottom: 0;
-     background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="none" opacity="0.05"><circle cx="25" cy="25" r="15" stroke="white" stroke-width="2"/><circle cx="75" cy="75" r="15" stroke="white" stroke-width="2"/><circle cx="75" cy="25" r="10" stroke="white" stroke-width="2"/><circle cx="25" cy="75" r="10" stroke="white" stroke-width="2"/></svg>');
+ .header-content {
+     max-width: 800px;
+     margin: 0 auto;
  }
 
  .header h1 {
      font-family: 'Poppins', sans-serif;
-     font-size: 3.5rem;
+     font-size: 2.2rem;
      font-weight: 700;
-     margin-bottom: 15px;
+     margin-bottom: 10px;
      letter-spacing: -0.02em;
-     position: relative;
  }
 
  .header p {
      font-family: 'Inter', sans-serif;
-     font-size: 1.3rem;
+     font-size: 1.1rem;
      font-weight: 400;
-     max-width: 700px;
-     margin: 0 auto 25px;
      opacity: 0.9;
-     letter-spacing: -0.01em;
-     position: relative;
  }
 
- .header-buttons {
-     display: flex;
-     gap: 15px;
-     justify-content: center;
-     margin-top: 20px;
- }
 
  .about-section {
      background: white;
@@ -1064,13 +1047,6 @@
  }
 
  @media (max-width: 768px) {
-     .header h1 {
-         font-size: 2.5rem;
-     }
-
-     .header p {
-         font-size: 1.1rem;
-     }
 
      .section-title {
          font-size: 1.8rem;
@@ -1088,14 +1064,16 @@
          padding: 30px;
      }
 
-     .header-buttons {
-         flex-direction: column;
-         align-items: center;
+     .header {
+         padding: 25px 20px;
      }
 
-     .header-buttons .btn {
-         width: 100%;
-         max-width: 250px;
+     .header h1 {
+         font-size: 1.8rem;
+     }
+
+     .header p {
+         font-size: 1rem;
      }
 
      .membership-form {
